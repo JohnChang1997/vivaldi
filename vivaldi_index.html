@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>韋瓦第 Vivaldi — 貨運媒合平台</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root {
+  --navy: #0f1923;
+  --navy2: #1a2635;
+  --navy3: #243040;
+  --gold: #c9a84c;
+  --gold2: #e8c87a;
+  --gold3: #f5e0a0;
+  --white: #f5f0e8;
+  --gray: #8a9ab0;
+  --gray2: #4a5a6a;
+  --success: #2ecc71;
+  --danger: #e74c3c;
+  --warning: #f39c12;
+  --radius: 12px;
+  --shadow: 0 4px 24px rgba(0,0,0,0.3);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  font-family: 'Noto Sans TC', sans-serif;
+  background: var(--navy);
+  color: var(--white);
+  min-height: 100vh;
+}
+/* ── SCREENS ── */
+.screen { display:none; min-height:100vh; }
+.screen.active { display:flex; flex-direction:column; }
+
+/* ── LANDING ── */
+#landing {
+  background: linear-gradient(160deg, #0f1923 0%, #1a2635 50%, #0f1923 100%);
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 40px 20px;
+  position: relative;
+  overflow: hidden;
+}
+#landing::before {
+  content:'';
+  position:absolute; inset:0;
+  background: radial-gradient(ellipse at 30% 20%, rgba(201,168,76,0.08) 0%, transparent 60%),
+              radial-gradient(ellipse at 70% 80%, rgba(201,168,76,0.05) 0%, transparent 50%);
+}
+.logo-mark {
+  width: 80px; height: 80px;
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  margin: 0 auto 24px;
+  position: relative;
+}
+.logo-mark::before {
+  content:'♩';
+  font-size: 36px;
+  color: var(--gold);
+}
+.brand-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 48px;
+  font-weight: 700;
+  color: var(--gold);
+  letter-spacing: 8px;
+  margin-bottom: 4px;
+}
+.brand-sub {
+  font-size: 14px;
+  color: var(--gray);
+  letter-spacing: 4px;
+  margin-bottom: 48px;
+}
+.tagline {
+  font-size: 16px;
+  color: var(--white);
+  line-height: 1.8;
+  max-width: 480px;
+  margin: 0 auto 48px;
+  opacity: 0.9;
+}
+.tagline em {
+  color: var(--gold2);
+  font-style: normal;
+}
+.role-cards {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 32px;
+}
+.role-card {
+  background: var(--navy2);
+  border: 1px solid var(--navy3);
+  border-radius: var(--radius);
+  padding: 32px 40px;
+  cursor: pointer;
+  transition: all 0.3s;
+  min-width: 200px;
+  position: relative;
+  overflow: hidden;
+}
+.role-card::before {
+  content:'';
+  position:absolute; bottom:0; left:0; right:0;
+  height: 3px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transition: transform 0.3s;
+}
+.role-card:hover { border-color: var(--gold); transform: translateY(-4px); }
+.role-card:hover::before { transform: scaleX(1); }
+.role-icon { font-size: 40px; margin-bottom: 12px; }
+.role-title { font-size: 18px; font-weight: 700; color: var(--gold); margin-bottom: 8px; }
+.role-desc { font-size: 13px; color: var(--gray); line-height: 1.6; }
+.landing-footer {
+  font-size: 11px;
+  color: var(--gray2);
+  margin-top: 16px;
+  line-height: 1.8;
+  max-width: 480px;
+}
+
+/* ── AUTH ── */
+#auth {
+  align-items: center;
+  justify-content: center;
+  padding: 40px 20px;
+  background: var(--navy);
+}
+.auth-box {
+  background: var(--navy2);
+  border: 1px solid var(--navy3);
+  border-radius: 16px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+}
+.auth-logo {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.auth-logo .brand { font-family: 'Noto Serif TC',serif; font-size: 24px; color: var(--gold); letter-spacing: 4px; }
+.auth-logo .role-badge {
+  display: inline-block;
+  background: var(--navy3);
+  color: var(--gold2);
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.tab-switch {
+  display: flex;
+  background: var(--navy);
+  border-radius: 8px;
+  padding: 4px;
+  margin-bottom: 28px;
+}
+.tab-btn {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: var(--gray);
+  cursor: pointer;
+  border-radius: 6px;
+  font-size: 14px;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: all 0.2s;
+}
+.tab-btn.active {
+  background: var(--gold);
+  color: var(--navy);
+  font-weight: 700;
+}
+.form-group { margin-bottom: 16px; }
+.form-group label { display:block; font-size:12px; color:var(--gray); margin-bottom:6px; letter-spacing:1px; }
+.form-group input, .form-group select {
+  width: 100%;
+  background: var(--navy);
+  border: 1px solid var(--navy3);
+  color: var(--white);
+  padding: 12px 16px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-family: 'Noto Sans TC', sans-serif;
+  transition: border-color 0.2s;
+  outline: none;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--gold); }
+.form-group select option { background: var(--navy2); }
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  background: var(--gold);
+  color: var(--navy);
+  border: none;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+.btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
+.btn-secondary {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--gold);
+  border: 1px solid var(--gold);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-secondary:hover { background: rgba(201,168,76,0.1); }
+.btn-danger {
+  padding: 10px 20px;
+  background: transparent;
+  color: var(--danger);
+  border: 1px solid var(--danger);
+  border-radius: 8px;
+  font-size: 14px;
+  font-family: 'Noto Sans TC', sans-serif;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+.back-link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--gray);
+  cursor: pointer;
+}
+.back-link:hover { color: var(--gold); }
+.msg { padding:12px; border-radius:8px; font-size:13px; margin-bottom:16px; text-align:center; }
+.msg.error { background:rgba(231,76,60,0.15); color:#ff6b6b; border:1px solid rgba(231,76,60,0.3); }
+.msg.success { background:rgba(46,204,113,0.15); color:#55efc4; border:1px solid rgba(46,204,113,0.3); }
+
+/* ── APP SHELL ── */
+#app { flex-direction: column; }
+.topbar {
+  background: var(--navy2);
+  border-bottom: 1px solid var(--navy3);
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 60px;
+  position: sticky; top: 0; z-index: 100;
+}
+.topbar-brand { font-family:'Noto Serif TC',serif; font-size:18px; color:var(--gold); letter-spacing:3px; }
+.topbar-user { display:flex; align-items:center; gap:12px; }
+.user-role-badge {
+  background: var(--navy3);
+  color: var(--gold2);
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+}
+.app-body { flex:1; display:flex; }
+.sidebar {
+  width: 220px;
+  background: var(--navy2);
+  border-right: 1px solid var(--navy3);
+  padding: 24px 0;
+  flex-shrink: 0;
+}
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 24px;
+  cursor: pointer;
+  color: var(--gray);
+  font-size: 14px;
+  transition: all 0.2s;
+  border-left: 3px solid transparent;
+}
+.nav-item:hover { color: var(--white); background: rgba(255,255,255,0.05); }
+.nav-item.active { color: var(--gold); border-left-color: var(--gold); background: rgba(201,168,76,0.08); }
+.nav-icon { font-size: 18px; width: 24px; text-align:center; }
+.main-content { flex:1; padding:32px; overflow-y:auto; max-width:900px; }
+
+/* ── PAGES ── */
+.page { display:none; }
+.page.active { display:block; }
+.page-title {
+  font-family: 'Noto Serif TC', serif;
+  font-size: 26px;
+  color: var(--gold);
+  margin-bottom: 8px;
+}
+.page-sub { font-size:14px; color:var(--gray); margin-bottom:32px; line-height:1.6; }
+
+/* ── STATS ROW ── */
+.stats-row { display:flex; gap:16px; margin-bottom:32px; flex-wrap:wrap; }
+.stat-card {
+  background: var(--navy2);
+  border: 1px solid var(--navy3);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  flex:1; min-width:130px;
+}
+.stat-val { font-size:28px; font-weight:700; color:var(--gold); }
+.stat-label { font-size:12px; color:var(--gray); margin-top:4px; }
+
+/* ── ORDER CARD ── */
+.order-list { display:flex; flex-direction:column; gap:16px; }
+.order-card {
+  background: var(--navy2);
+  border: 1px solid var(--navy3);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  transition: border-color 0.2s;
+}
+.order-card:hover { border-color: var(--gold2); }
+.order-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px; }
+.order-route { font-size:16px; font-weight:700; color:var(--white); }
+.order-arrow { color:var(--gold); margin:0 8px; }
+.status-badge {
+  padding: 4px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.status-open { background:rgba(46,204,113,0.15); color:#2ecc71; }
+.status-accepted { background:rgba(243,156,18,0.15); color:#f39c12; }
+.status-in_progress { background:rgba(52,152,219,0.15); color:#3498db; }
+.status-completed { background:rgba(149,165,166,0.15); color:#95a5a6; }
+.order-meta { display:flex; gap:20px; flex-wrap:wrap; margin-bottom:12px; }
+.order-meta-item { font-size:13px; color:var(--gray); }
+.order-meta-item span { color:var(--white); font-weight:500; }
+.order-price { font-size:20px; color:var(--gold); font-weight:700; }
+.order-actions { display:flex; gap:10px; margin-top:16px; flex-wrap:wrap; }
+.order-service-fee { font-size:11px; color:var(--gray); margin-top:4px; }
+
+/* ── FORM CARD ── */
+.form-card {
+  background: var(--navy2);
+  border: 1px solid var(--navy3);
+  border-radius: var(--radius);
+  padding: 32px;
+  max-width: 600px;
+}
+.form-row { display:flex; gap:16px; }
+.form-row .form-group { flex:1; }
+.section-title { font-size:12px; color:var(--gold); letter-spacing:2px; margin-bottom:16px; padding-bottom:8px; border-bottom:1px solid var(--navy3); }
+
+/* ── DRIVER PROFILE ── */
+.profile-hero {
+  background: var(--navy2);
+  border: 1px solid var(--navy3);
+  border-radius: var(--radius);
+  padding: 32px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.avatar {
+  width: 72px; height: 72px;
+  background: var(--navy3);
+  border: 2px solid var(--gold);
+  border-radius: 50%;
+  display: flex; align-items:center; justify-content:center;
+  font-size: 28px;
+  flex-shrink: 0;
+}
+.profile-name { font-size:22px; font-weight:700; color:var(--white); }
+.profile-since { font-size:12px; color:var(--gray); margin-top:4px; }
+.profile-rating { display:flex; align-items:center; gap:6px; margin-top:8px; }
+.stars { color:var(--gold); font-size:16px; }
+.rating-val { font-size:14px; color:var(--white); }
+
+/* ── ACHIEVEMENTS ── */
+.achievements-grid { display:flex; flex-wrap:wrap; gap:12px; margin-bottom:32px; }
+.achievement {
+  background: var(--navy2);
+  border: 1px solid var(--navy3);
+  border-radius: 10px;
+  padding: 16px 20px;
+  display:flex; align-items:center; gap:12px;
+  min-width: 180px;
+  flex: 1;
+}
+.achievement.earned { border-color: var(--gold); background: rgba(201,168,76,0.08); }
+.achievement.locked { opacity: 0.4; }
+.ach-icon { font-size:28px; }
+.ach-name { font-size:13px; font-weight:700; color:var(--white); }
+.ach-desc { font-size:11px; color:var(--gray); margin-top:2px; }
+
+/* ── EMPTY STATE ── */
+.empty-state {
+  text-align:center; padding:60px 20px;
+  color:var(--gray);
+}
+.empty-state .empty-icon { font-size:48px; margin-bottom:16px; opacity:0.5; }
+.empty-state p { font-size:15px; line-height:1.8; }
+
+/* ── LOADING ── */
+.loading { text-align:center; padding:40px; color:var(--gray); }
+
+/* ── MODAL ── */
+.modal-overlay {
+  display:none; position:fixed; inset:0;
+  background:rgba(0,0,0,0.7);
+  z-index:1000; align-items:center; justify-content:center;
+  padding: 20px;
+}
+.modal-overlay.open { display:flex; }
+.modal {
+  background:var(--navy2);
+  border:1px solid var(--navy3);
+  border-radius:16px;
+  padding:32px;
+  max-width:460px; width:100%;
+  max-height:90vh; overflow-y:auto;
+}
+.modal-title { font-size:20px; font-weight:700; color:var(--gold); margin-bottom:20px; }
+.modal-actions { display:flex; gap:12px; margin-top:24px; justify-content:flex-end; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:640px) {
+  .sidebar { display:none; }
+  .main-content { padding:20px 16px; }
+  .brand-title { font-size:36px; }
+  .profile-hero { flex-direction:column; text-align:center; }
+  .form-row { flex-direction:column; }
+}
+</style>
+</head>
+<body>
+
+<!-- LANDING -->
+<div id="landing" class="screen active">
+  <div class="logo-mark"></div>
+  <div class="brand-title">韋瓦第</div>
+  <div class="brand-sub">VIVALDI FREIGHT PLATFORM</div>
+  <p class="tagline">
+    貨運的本質，是<em>一個人信任另一個人</em>，<br>
+    把重要的東西交給他。<br>
+    我們在這裡，讓這件事變得更容易。
+  </p>
+  <div class="role-cards">
+    <div class="role-card" onclick="selectRole('owner')">
+      <div class="role-icon">🏭</div>
+      <div class="role-title">我是業主</div>
+      <div class="role-desc">發布載貨需求<br>直接找到合適司機<br>透明運費，省時省力</div>
+    </div>
+    <div class="role-card" onclick="selectRole('driver')">
+      <div class="role-icon">🚛</div>
+      <div class="role-title">我是司機</div>
+      <div class="role-desc">自己決定上下班時間<br>累積信用與榮譽<br>讓業主主動找你</div>
+    </div>
+  </div>
+  <div class="landing-footer">
+    無靠行費 · 無抽成 · 只收服務費<br>
+    你的付出，都會成為你的回報與榮譽
+  </div>
+</div>
+
+<!-- AUTH -->
+<div id="auth" class="screen">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <div class="brand">韋瓦第</div>
+      <div id="authRoleBadge" class="role-badge"></div>
+    </div>
+    <div class="tab-switch">
+      <button class="tab-btn active" onclick="switchTab('login')">登入</button>
+      <button class="tab-btn" onclick="switchTab('register')">註冊</button>
+    </div>
+    <div id="authMsg"></div>
+
+    <!-- LOGIN FORM -->
+    <div id="loginForm">
+      <div class="form-group">
+        <label>電子郵件</label>
+        <input type="email" id="loginEmail" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>密碼</label>
+        <input type="password" id="loginPassword" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" onclick="doLogin()">登入</button>
+    </div>
+
+    <!-- REGISTER FORM -->
+    <div id="registerForm" style="display:none">
+      <div class="form-group">
+        <label>姓名 / 公司名稱</label>
+        <input type="text" id="regName" placeholder="王大明 / 大明工廠">
+      </div>
+      <div class="form-group">
+        <label>電子郵件</label>
+        <input type="email" id="regEmail" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label>聯絡電話</label>
+        <input type="tel" id="regPhone" placeholder="0912-345-678">
+      </div>
+      <div class="form-group">
+        <label>密碼（至少6位）</label>
+        <input type="password" id="regPassword" placeholder="••••••••">
+      </div>
+      <button class="btn-primary" onclick="doRegister()">建立帳號</button>
+    </div>
+
+    <div class="back-link" onclick="showScreen('landing')">← 返回首頁</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" class="screen">
+  <div class="topbar">
+    <div class="topbar-brand">韋瓦第</div>
+    <div class="topbar-user">
+      <span class="user-role-badge" id="topRoleBadge"></span>
+      <span id="topUserName" style="font-size:14px; color:var(--gray)"></span>
+      <button class="btn-secondary btn-sm" onclick="doLogout()">登出</button>
+    </div>
+  </div>
+  <div class="app-body">
+    <div class="sidebar" id="sidebar"></div>
+    <div class="main-content" id="mainContent"></div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal" id="modalBox">
+    <div class="modal-title" id="modalTitle"></div>
+    <div id="modalBody"></div>
+    <div class="modal-actions" id="modalActions"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL = 'https://kxwqkljvlglmxrsvectp.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_2IUwaUhuw0dcrcCVS8ZxMw_BeXRPlE2';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentUser = null;
+let currentProfile = null;
+let selectedRole = null;
+
+// ── INIT ──
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    await loadProfile();
+    showAppScreen();
+  }
+}
+
+// ── SCREEN NAV ──
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function selectRole(role) {
+  selectedRole = role;
+  document.getElementById('authRoleBadge').textContent = role === 'owner' ? '🏭 業主' : '🚛 司機';
+  showScreen('auth');
+  switchTab('login');
+}
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab-btn').forEach((b,i) => b.classList.toggle('active', (i===0&&tab==='login')||(i===1&&tab==='register')));
+  document.getElementById('loginForm').style.display = tab==='login' ? 'block' : 'none';
+  document.getElementById('registerForm').style.display = tab==='register' ? 'block' : 'none';
+  document.getElementById('authMsg').innerHTML = '';
+}
+
+function showMsg(msg, type='error') {
+  document.getElementById('authMsg').innerHTML = `<div class="msg ${type}">${msg}</div>`;
+}
+
+// ── AUTH ──
+async function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw = document.getElementById('loginPassword').value;
+  if (!email || !pw) return showMsg('請填寫所有欄位');
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (error) return showMsg('登入失敗：' + error.message);
+  currentUser = data.user;
+  await loadProfile();
+  showAppScreen();
+}
+
+async function doRegister() {
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const phone = document.getElementById('regPhone').value.trim();
+  const pw = document.getElementById('regPassword').value;
+  if (!name||!email||!phone||!pw) return showMsg('請填寫所有欄位');
+  if (pw.length < 6) return showMsg('密碼至少需要6位');
+  const { data, error } = await sb.auth.signUp({ email, password: pw });
+  if (error) return showMsg('註冊失敗：' + error.message);
+  currentUser = data.user;
+  // Create profile
+  await sb.from('profiles').insert({
+    id: currentUser.id,
+    name, email, phone,
+    role: selectedRole,
+    rating: 5.0,
+    total_orders: 0,
+    on_time_rate: 100
+  });
+  await loadProfile();
+  showMsg('帳號建立成功！歡迎加入韋瓦第', 'success');
+  setTimeout(showAppScreen, 1000);
+}
+
+async function doLogout() {
+  await sb.auth.signOut();
+  currentUser = null; currentProfile = null;
+  showScreen('landing');
+}
+
+async function loadProfile() {
+  const { data } = await sb.from('profiles').select('*').eq('id', currentUser.id).single();
+  currentProfile = data;
+}
+
+// ── APP SHELL ──
+function showAppScreen() {
+  showScreen('app');
+  const isOwner = currentProfile?.role === 'owner';
+  document.getElementById('topRoleBadge').textContent = isOwner ? '🏭 業主' : '🚛 司機';
+  document.getElementById('topUserName').textContent = currentProfile?.name || currentUser.email;
+  renderSidebar(isOwner);
+  showPage(isOwner ? 'dashboard' : 'browse');
+}
+
+function renderSidebar(isOwner) {
+  const items = isOwner ? [
+    { id:'dashboard', icon:'📊', label:'總覽' },
+    { id:'post', icon:'📦', label:'發布訂單' },
+    { id:'myorders', icon:'📋', label:'我的訂單' },
+  ] : [
+    { id:'browse', icon:'🔍', label:'瀏覽訂單' },
+    { id:'myaccepted', icon:'🚛', label:'我的接單' },
+    { id:'profile', icon:'⭐', label:'我的主頁' },
+  ];
+  document.getElementById('sidebar').innerHTML = items.map(i =>
+    `<div class="nav-item" id="nav-${i.id}" onclick="showPage('${i.id}')">
+      <span class="nav-icon">${i.icon}</span>${i.label}
+    </div>`
+  ).join('');
+}
+
+function showPage(pageId) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const nav = document.getElementById('nav-' + pageId);
+  if (nav) nav.classList.add('active');
+  const pages = {
+    dashboard: renderDashboard,
+    post: renderPostOrder,
+    myorders: renderMyOrders,
+    browse: renderBrowse,
+    myaccepted: renderMyAccepted,
+    profile: renderProfile,
+  };
+  if (pages[pageId]) pages[pageId]();
+}
+
+// ── OWNER: DASHBOARD ──
+async function renderDashboard() {
+  document.getElementById('mainContent').innerHTML = `<div class="loading">載入中...</div>`;
+  const { data: orders } = await sb.from('orders').select('*').eq('owner_id', currentUser.id);
+  const total = orders?.length || 0;
+  const open = orders?.filter(o=>o.status==='open').length || 0;
+  const done = orders?.filter(o=>o.status==='completed').length || 0;
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-title">總覽</div>
+    <p class="page-sub">歡迎回來，${currentProfile?.name}。你的訂單概況如下。</p>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">總訂單數</div></div>
+      <div class="stat-card"><div class="stat-val">${open}</div><div class="stat-label">待承接</div></div>
+      <div class="stat-card"><div class="stat-val">${done}</div><div class="stat-label">已完成</div></div>
+    </div>
+    <div class="page-title" style="font-size:18px;margin-bottom:16px">最近訂單</div>
+    <div class="order-list" id="dashOrderList"><div class="loading">載入中...</div></div>
+  `;
+  const recent = orders?.slice(-5).reverse() || [];
+  document.getElementById('dashOrderList').innerHTML = recent.length ? recent.map(renderOrderCard).join('') : emptyState('還沒有訂單', '點左側「發布訂單」建立你的第一筆需求');
+}
+
+// ── OWNER: POST ORDER ──
+function renderPostOrder() {
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-title">發布訂單</div>
+    <p class="page-sub">填寫載貨需求，司機將看到這筆訂單並主動承接。</p>
+    <div class="form-card">
+      <div class="section-title">路線資訊</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>起運地點</label>
+          <input type="text" id="pickup" placeholder="台北市中山區">
+        </div>
+        <div class="form-group">
+          <label>目的地</label>
+          <input type="text" id="delivery" placeholder="桃園市中壢區">
+        </div>
+      </div>
+      <div class="section-title" style="margin-top:24px">貨物資訊</div>
+      <div class="form-group">
+        <label>貨物描述</label>
+        <input type="text" id="cargo" placeholder="工廠零件、包裝紙箱，共20箱">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>重量（公斤）</label>
+          <input type="number" id="weight" placeholder="500">
+        </div>
+        <div class="form-group">
+          <label>車型需求</label>
+          <select id="truckType">
+            <option value="小貨車">小貨車（1噸以下）</option>
+            <option value="中貨車">中貨車（1-3噸）</option>
+            <option value="大貨車">大貨車（3噸以上）</option>
+            <option value="不限">不限車型</option>
+          </select>
+        </div>
+      </div>
+      <div class="section-title" style="margin-top:24px">時間與費用</div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>預計取貨時間</label>
+          <input type="datetime-local" id="schedTime">
+        </div>
+        <div class="form-group">
+          <label>運費（元）</label>
+          <input type="number" id="price" placeholder="3000">
+        </div>
+      </div>
+      <div class="form-group" style="margin-top:8px">
+        <label>備註</label>
+        <input type="text" id="notes" placeholder="需要搬運協助、注意易碎品...">
+      </div>
+      <div id="postMsg"></div>
+      <button class="btn-primary" style="margin-top:8px" onclick="submitOrder()">發布訂單</button>
+      <p style="font-size:11px;color:var(--gray);margin-top:12px;text-align:center">
+        平台服務費 NT$50 將於訂單完成後向您收取
+      </p>
+    </div>
+  `;
+}
+
+async function submitOrder() {
+  const pickup = document.getElementById('pickup').value.trim();
+  const delivery = document.getElementById('delivery').value.trim();
+  const cargo = document.getElementById('cargo').value.trim();
+  const weight = document.getElementById('weight').value;
+  const truckType = document.getElementById('truckType').value;
+  const schedTime = document.getElementById('schedTime').value;
+  const price = document.getElementById('price').value;
+  const notes = document.getElementById('notes').value.trim();
+  if (!pickup||!delivery||!cargo||!price) {
+    document.getElementById('postMsg').innerHTML = '<div class="msg error">請填寫起運地、目的地、貨物描述及運費</div>';
+    return;
+  }
+  const { error } = await sb.from('orders').insert({
+    owner_id: currentUser.id,
+    owner_name: currentProfile.name,
+    pickup_location: pickup,
+    delivery_location: delivery,
+    cargo_description: cargo,
+    cargo_weight: weight || null,
+    truck_type: truckType,
+    scheduled_time: schedTime || null,
+    price: parseInt(price),
+    notes: notes || null,
+    status: 'open',
+    service_fee: 50
+  });
+  if (error) {
+    document.getElementById('postMsg').innerHTML = `<div class="msg error">發布失敗：${error.message}</div>`;
+    return;
+  }
+  document.getElementById('postMsg').innerHTML = '<div class="msg success">訂單發布成功！司機將看到您的需求。</div>';
+  setTimeout(() => showPage('myorders'), 1500);
+}
+
+// ── OWNER: MY ORDERS ──
+async function renderMyOrders() {
+  document.getElementById('mainContent').innerHTML = `<div class="loading">載入中...</div>`;
+  const { data: orders } = await sb.from('orders').select('*').eq('owner_id', currentUser.id).order('created_at', {ascending:false});
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-title">我的訂單</div>
+    <p class="page-sub">所有你發布的訂單狀態。</p>
+    <div class="order-list">${orders?.length ? orders.map(o=>renderOrderCard(o, true)).join('') : emptyState('還沒有訂單', '點左側「發布訂單」建立你的第一筆需求')}</div>
+  `;
+}
+
+// ── DRIVER: BROWSE ──
+async function renderBrowse() {
+  document.getElementById('mainContent').innerHTML = `<div class="loading">載入中...</div>`;
+  const { data: orders } = await sb.from('orders').select('*').eq('status','open').order('created_at',{ascending:false});
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-title">可承接訂單</div>
+    <p class="page-sub">目前開放中的訂單，點選查看詳情並一鍵承接。</p>
+    <div class="order-list">${orders?.length ? orders.map(o=>renderOrderCard(o, false, true)).join('') : emptyState('目前沒有開放訂單', '有新訂單時會立即顯示在這裡')}</div>
+  `;
+}
+
+// ── DRIVER: MY ACCEPTED ──
+async function renderMyAccepted() {
+  document.getElementById('mainContent').innerHTML = `<div class="loading">載入中...</div>`;
+  const { data: orders } = await sb.from('orders').select('*').eq('driver_id', currentUser.id).order('created_at',{ascending:false});
+  document.getElementById('mainContent').innerHTML = `
+    <div class="page-title">我的接單</div>
+    <p class="page-sub">你承接的訂單狀態總覽。</p>
+    <div class="order-list">${orders?.length ? orders.map(o=>renderOrderCard(o, false, false, true)).join('') : emptyState('還沒有承接任何訂單', '到「瀏覽訂單」找到適合你的訂單吧')}</div>
+  `;
+}
+
+// ── DRIVER: PROFILE ──
+async function renderProfile() {
+  const { data: orders } = await sb.from('orders').select('*').eq('driver_id', currentUser.id);
+  const total = orders?.length || 0;
+  const done = orders?.filter(o=>o.status==='completed').length || 0;
+  const achievements = getAchievements(total, done, currentProfile?.on_time_rate || 100, currentProfile?.rating || 5.0);
+  document.getElementById('mainContent').innerHTML = `
+    <div class="profile-hero">
+      <div class="avatar">🚛</div>
+      <div>
+        <div class="profile-name">${currentProfile?.name || '司機'}</div>
+        <div class="profile-since">加入韋瓦第</div>
+        <div class="profile-rating">
+          <span class="stars">${'★'.repeat(Math.round(currentProfile?.rating||5))}${'☆'.repeat(5-Math.round(currentProfile?.rating||5))}</span>
+          <span class="rating-val">${(currentProfile?.rating||5).toFixed(1)} 分</span>
+        </div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val">${total}</div><div class="stat-label">累積接單</div></div>
+      <div class="stat-card"><div class="stat-val">${done}</div><div class="stat-label">完成訂單</div></div>
+      <div class="stat-card"><div class="stat-val">${currentProfile?.on_time_rate||100}%</div><div class="stat-label">準時率</div></div>
+    </div>
+    <div class="page-title" style="font-size:18px;margin-bottom:16px">成就徽章</div>
+    <div class="achievements-grid">${achievements.map(a=>`
+      <div class="achievement ${a.earned?'earned':'locked'}">
+        <div class="ach-icon">${a.icon}</div>
+        <div>
+          <div class="ach-name">${a.name}</div>
+          <div class="ach-desc">${a.desc}</div>
+        </div>
+      </div>`).join('')}
+    </div>
+    <p style="font-size:12px;color:var(--gray);text-align:center;margin-top:8px">
+      你的信用，就是你的資產。每一次準時、每一個好評，都在這裡。
+    </p>
+  `;
+}
+
+function getAchievements(total, done, ontime, rating) {
+  return [
+    { icon:'🎵', name:'正式入場', desc:'完成第一筆接單', earned: total >= 1 },
+    { icon:'⭐', name:'好評司機', desc:'評分達 4.8 以上', earned: rating >= 4.8 },
+    { icon:'⏰', name:'準時達人', desc:'準時率 95% 以上', earned: ontime >= 95 },
+    { icon:'🏅', name:'資深司機', desc:'累積完成 50 單', earned: done >= 50 },
+    { icon:'👑', name:'韋瓦第之星', desc:'累積完成 100 單', earned: done >= 100 },
+    { icon:'🤝', name:'業主首選', desc:'被指定超過 10 次', earned: false },
+  ];
+}
+
+// ── ORDER CARD RENDERER ──
+function renderOrderCard(o, isOwner=false, canAccept=false, isDriver=false) {
+  const statusLabel = { open:'待承接', accepted:'已承接', in_progress:'運送中', completed:'已完成' };
+  const statusClass = { open:'status-open', accepted:'status-accepted', in_progress:'status-in_progress', completed:'status-completed' };
+  const time = o.scheduled_time ? new Date(o.scheduled_time).toLocaleString('zh-TW',{month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'}) : '彈性時間';
+  let actions = '';
+  if (canAccept && o.status==='open') {
+    actions = `<div class="order-actions"><button class="btn-primary btn-sm" onclick="acceptOrder('${o.id}')">一鍵承接</button></div>`;
+  }
+  if (isOwner && o.status==='accepted') {
+    actions = `<div class="order-actions"><button class="btn-secondary btn-sm" onclick="updateStatus('${o.id}','in_progress')">確認取貨出發</button></div>`;
+  }
+  if (isOwner && o.status==='in_progress') {
+    actions = `<div class="order-actions"><button class="btn-primary btn-sm" onclick="updateStatus('${o.id}','completed')">確認貨物送達</button></div>`;
+  }
+  if (isDriver && o.status==='accepted') {
+    actions = `<div class="order-actions"><button class="btn-secondary btn-sm" onclick="updateStatus('${o.id}','in_progress')">出發取貨</button></div>`;
+  }
+  if (isDriver && o.status==='in_progress') {
+    actions = `<div class="order-actions"><button class="btn-primary btn-sm" onclick="updateStatus('${o.id}','completed')">送達完成</button></div>`;
+  }
+  return `
+    <div class="order-card">
+      <div class="order-header">
+        <div class="order-route">${o.pickup_location} <span class="order-arrow">→</span> ${o.delivery_location}</div>
+        <div class="status-badge ${statusClass[o.status]||'status-open'}">${statusLabel[o.status]||o.status}</div>
+      </div>
+      <div class="order-meta">
+        <div class="order-meta-item">貨物：<span>${o.cargo_description}</span></div>
+        ${o.cargo_weight?`<div class="order-meta-item">重量：<span>${o.cargo_weight} kg</span></div>`:''}
+        <div class="order-meta-item">車型：<span>${o.truck_type||'不限'}</span></div>
+        <div class="order-meta-item">時間：<span>${time}</span></div>
+        ${o.owner_name?`<div class="order-meta-item">業主：<span>${o.owner_name}</span></div>`:''}
+        ${o.notes?`<div class="order-meta-item">備註：<span>${o.notes}</span></div>`:''}
+      </div>
+      <div class="order-price">NT$ ${parseInt(o.price).toLocaleString()}</div>
+      <div class="order-service-fee">運費全額給司機 · 平台服務費 NT$50 由業主另行支付</div>
+      ${actions}
+    </div>`;
+}
+
+// ── ORDER ACTIONS ──
+async function acceptOrder(orderId) {
+  const { error } = await sb.from('orders').update({
+    status: 'accepted',
+    driver_id: currentUser.id,
+    driver_name: currentProfile.name
+  }).eq('id', orderId);
+  if (error) { alert('承接失敗：' + error.message); return; }
+  // Update driver total_orders
+  await sb.from('profiles').update({ total_orders: (currentProfile.total_orders||0)+1 }).eq('id', currentUser.id);
+  currentProfile.total_orders = (currentProfile.total_orders||0)+1;
+  alert('承接成功！業主將看到你的接單通知。');
+  renderBrowse();
+}
+
+async function updateStatus(orderId, newStatus) {
+  const { error } = await sb.from('orders').update({ status: newStatus }).eq('id', orderId);
+  if (error) { alert('更新失敗：' + error.message); return; }
+  const isOwner = currentProfile?.role === 'owner';
+  if (isOwner) renderMyOrders(); else renderMyAccepted();
+}
+
+// ── HELPERS ──
+function emptyState(title, desc) {
+  return `<div class="empty-state"><div class="empty-icon">📭</div><p><strong>${title}</strong><br>${desc}</p></div>`;
+}
+
+// ── START ──
+init();
+</script>
+</body>
+</html>
